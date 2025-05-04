@@ -1,0 +1,96 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <DefineConstants>tls13</DefineConstants>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle" Version="1.8.9" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.96.0" />
+    <PackageReference Include="NLog" Version="4.7.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Core Dependencies -->
+    <Compile Include="core\DB.fs" />
+    <Compile Include="crypto\CryptoProvider.fs" />
+    <Compile Include="core\pi.fs" />
+    <Compile Include="core\Date.fs" />
+    <Compile Include="core\Error.fs" />
+    <Compile Include="core\Bytes.fs" />
+    <Compile Include="core\List.fs" />
+    <Compile Include="core\CoreCiphers.fs" />
+    <Compile Include="core\CoreHMac.fs" />
+    <Compile Include="libs\Serialization.fs" />
+    <Compile Include="core\DHDB.fs" />
+    <Compile Include="libs\Tcp.fs" />
+    <Compile Include="core\CoreHash.fs" />
+    <Compile Include="core\CoreKeys.fs" />
+    <Compile Include="core\CoreDH.fs" />
+    <Compile Include="core\CoreECDH.fs" />
+    <Compile Include="core\CoreSig.fs" />
+    <Compile Include="core\CoreRandom.fs" />
+    <Compile Include="tls\TLSError.fs" />
+    <Compile Include="core\DHGroup.fs" /> 
+    <Compile Include="tls\TLSConstants.fs" />
+    <Compile Include="core\ECGroup.fs" />
+    <Compile Include="core\CommonDH.fs" />
+    <Compile Include="crypto\HASH.fs" />
+    <Compile Include="crypto\HMAC.fs" />
+    <Compile Include="libs\Sig.fs" />
+    <Compile Include="libs\UntrustedCert.fs" />
+    <Compile Include="core\Nonce.fs" />
+    <Compile Include="core\CoreACiphers.fs" />
+    <Compile Include="crypto\RSAKey.fs" />
+    <Compile Include="libs\Cert.fs" />
+    <Compile Include="core\PMS.fs" />
+    <Compile Include="tls\TLSInfo.fs" />
+    <Compile Include="crypto\RSA.fs" />
+    <Compile Include="tls\TLSExtensions.fs" />
+    <Compile Include="crypto\MAC_SHA1.fs" />
+    <Compile Include="crypto\MAC_SHA256.fs" />
+    <Compile Include="crypto\MAC.fs" />
+    <Compile Include="core\Range.fs" />
+    <Compile Include="core\DataStream.fs" />
+    <Compile Include="core\AppFragment.fs" />
+    <Compile Include="core\HSFragment.fs" />
+    <Compile Include="core\Alert.fs" />
+    <Compile Include="core\TLSFragment.fs" />
+    <Compile Include="core\StatefulPlain.fs" />
+    <Compile Include="core\LHAEPlain.fs" />
+    <Compile Include="crypto\AEAD_GCM.fs" />
+    <Compile Include="crypto\Encode.fs" />
+    <Compile Include="crypto\ENC.fs" />
+    <Compile Include="core\LHAE.fs" />
+    <Compile Include="core\StatefulLHAE.fs" />
+    <Compile Include="tls\TLSPRF.fs" />
+    <Compile Include="core\PRF.fs" />
+    <Compile Include="core\KEF.fs" />
+    <Compile Include="flex\HandshakeMessages.fs" />
+    <Compile Include="core\Record.fs" />
+    <Compile Include="flex\FlexTypes.fs" />
+    <Compile Include="flex\FlexConstants.fs" />
+    <Compile Include="core\DH.fs" />
+    <Compile Include="flex\FlexState.fs" />
+    <Compile Include="flex\FlexRecord.fs" />
+    <Compile Include="flex\FlexCCS.fs" />
+    <Compile Include="flex\FlexHandshake.fs" />
+    <Compile Include="flex\FlexAlert.fs" />
+    <Compile Include="flex\FlexSecrets.fs" />
+    <Compile Include="flex\FlexFinished.fs" />
+    <Compile Include="flex\FlexClientHello.fs" />
+    <Compile Include="flex\FlexClientKeyExchange.fs" />
+    <Compile Include="flex\FlexServerHelloDone.fs" />
+    <Compile Include="flex\FlexCertificate.fs" />
+    <Compile Include="flex\FlexServerHello.fs" />
+    <Compile Include="flex\FlexConnection.fs" />
+    <Compile Include="flex\FlexServerKeyShare.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+</Project>

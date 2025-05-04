@@ -1,0 +1,30 @@
+version: "3.8"
+
+networks:
+  tlsnet:
+    driver: bridge
+
+services:
+  mitm:
+    build: .
+    container_name: mitm
+    networks:
+      - tlsnet
+    depends_on:
+      - server
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./certs:/certs:ro       # ← mount your CA + server.key/crt + client.key/crt
+    command: ["dotnet", "Program.dll"]
+
+  server:
+    image: myserverimage:latest
+    container_name: server
+    networks:
+      - tlsnet
+    expose:
+      - "4433"
+    volumes:
+      - ./certs:/certs:ro       # ← same mount for the real server
+    command: ["dotnet", "ServerProgram.dll"]
