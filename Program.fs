@@ -27,8 +27,6 @@ open FlexSecrets
 open HandshakeMessages
 open FlexAlert
 
-
-
 let private getEnvOrDefault (name:string) (defaultValue:string) : string =
     let value = System.Environment.GetEnvironmentVariable name in
     if System.String.IsNullOrWhiteSpace value then defaultValue else value

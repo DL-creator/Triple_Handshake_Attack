@@ -1,5 +1,3 @@
-version: "3.8"
-
 networks:
   tlsnet:
     driver: bridge
@@ -16,15 +14,41 @@ services:
       - "8443:8443"
     volumes:
       - ./certs:/certs:ro       # ← mount your CA + server.key/crt + client.key/crt
-    command: ["dotnet", "Program.dll"]
+    command: ["dotnet", "mitls.dll"]
 
   server:
-    image: myserverimage:latest
+    image: alpine
     container_name: server
     networks:
       - tlsnet
     expose:
       - "4433"
     volumes:
-      - ./certs:/certs:ro       # ← same mount for the real server
-    command: ["dotnet", "ServerProgram.dll"]
+      - ./certs:/certs:ro
+    command: >
+      sh -c "apk add --no-cache openssl && \
+              echo 'Listing cert directory:' && ls -l /certs && \
+              echo 'Running openssl s_server...' && \
+              openssl s_server -accept 4433 \
+                              -cert /certs/server.crt \
+                              -key /certs/server.key \
+                              -CAfile /certs/ca.crt \
+                              -Verify 1 -www"
+
+  client:
+    image: alpine
+    container_name: client
+    networks:
+      - tlsnet
+    depends_on:
+      - mitm
+    volumes:
+      - ./certs:/certs:ro
+    command: >
+      sh -c "apk add --no-cache openssl && \
+             echo -e '\n=============================\n     CLIENT LOGS\n=============================\n' && \
+             openssl s_client -connect mitm:8443 \
+                              -cert /certs/client.crt \
+                              -key /certs/client.key \
+                              -CAfile /certs/ca.crt \
+                              -reconnect"
