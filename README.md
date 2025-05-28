@@ -28,7 +28,7 @@ docker-compose build --no-cache
 docker-compose up
 ```
 
-### What to Expect
+### What To Expect
 
 - Logs in `mitm`, `server`, and `client` show the attack progress in the same terminal.
 - MITM injects `HelloRequest` for handshake 3, but OpenSSL client does not complete renegotiation.
@@ -40,7 +40,7 @@ docker-compose up
 
 Use this to demonstrate **all three handshakes**, including certificate reuse in handshake 3.
 
-### Step-by-Step instructions
+### Step-by-Step Instructions
 
 1. Start MITM and server:
 
@@ -69,7 +69,7 @@ When the MITM sends the HelloRequest to trigger renegotiation:
 
 - Alternatively, restart the OpenSSL client with the same command to manually simulate the reused certificate.
 
-### What to Expect
+### What To Expect
 
 - **Handshake 1**: Initial RSA connection.
 - **Handshake 2**: Session resumption.
