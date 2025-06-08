@@ -200,3 +200,17 @@ let hexString x =
     (cbytes x)
     |> Array.map (fun x -> System.String.Format("{0:X2}",x))
     |> String.concat System.String.Empty
+
+let ushort16_to_bytes (n: int) : bytes =
+    if n < 0 || n > 0xFFFF then failwith "ushort16_to_bytes: value out of range"
+    else
+        let hi = byte ((n >>> 8) &&& 0xFF)
+        let lo = byte (n &&& 0xFF)
+        abyte2 (hi, lo)
+
+let sequence (bs: bytes list) : bytes =
+    List.fold (@|) empty_bytes bs
+
+let bytes_of_list (lst: byte list) : bytes =
+    abytes (List.toArray lst)
+

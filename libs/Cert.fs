@@ -213,29 +213,36 @@ let parseCertificateList toProcess = parseCertificateListInt toProcess []
 
 /// Load a PEM or DER-encoded certificate chain from disk
 /// and return it as a Cert.chain (UntrustedCert.chain).
-let chainFromFile (path:string) : chain =
-    // 1) Read the raw file bytes (PEM or DER)
-    let rawDerOrPem : byte[] = System.IO.File.ReadAllBytes path in
+let chainFromFile (path: string) : chain =
+    let isPem = fun (s: string) -> s.Contains("-----BEGIN CERTIFICATE-----") in
 
-    // 2) Decide if it’s PEM (has “-----BEGIN”) or raw DER
-    let derArr : byte[] =
-      let txt = System.Text.Encoding.ASCII.GetString rawDerOrPem in
-      if txt.Contains "-----BEGIN CERTIFICATE-----" then
-        // Strip the PEM armor lines, concat, base64-decode
-        let payloadLines =
-          txt.Split([|"\r\n"; "\n"|], System.StringSplitOptions.RemoveEmptyEntries)
-          |> Array.filter (fun l -> not (l.StartsWith "-----"))
-        in
-        System.Convert.FromBase64String (String.concat "" payloadLines)
-      else
-        // Already DER
-        rawDerOrPem
-    in
+    if System.IO.Path.GetExtension(path).ToLower() = ".der" then
+        let rawDer = System.IO.File.ReadAllBytes(path) in
+        let derBytes = Bytes.abytes rawDer in
+        match parseCertificateList derBytes with
+        | Correct chain -> chain
+        | Error (_, msg) -> failwithf "chainFromFile parse error: %s" msg
+    else
+        let text = System.IO.File.ReadAllText(path) in
+        if not (isPem text) then
+            failwithf "File does not appear to be PEM or DER: %s" path
+        else
+            let matches =
+                System.Text.RegularExpressions.Regex.Matches(
+                    text,
+                    "-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----",
+                    System.Text.RegularExpressions.RegexOptions.Singleline)
+            in
 
-    // 3) Wrap into our `bytes` type
-    let derBytes : Bytes.bytes = Bytes.abytes derArr in
-
-    // 4) Parse the TLS CertificateList format
-    match parseCertificateList derBytes with
-    | Correct certChain -> certChain
-    | Error (_, msg)    -> failwithf "chainFromFile parse error: %s" msg
+            if matches.Count = 0 then
+                failwithf "No valid PEM certificates found in: %s" path
+            else
+                let derCerts =
+                    [ for m in matches ->
+                        let base64 = m.Groups.[1].Value.Replace("\r", "").Replace("\n", "").Trim() in
+                        base64 |> System.Convert.FromBase64String |> Bytes.abytes ]
+                in
+                let certList = certificateListBytes derCerts in
+                match parseCertificateList certList with
+                | Correct chain -> chain
+                | Error (_, msg) -> failwithf "chainFromFile parse error: %s" msg

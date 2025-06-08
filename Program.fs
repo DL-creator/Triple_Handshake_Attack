@@ -45,8 +45,29 @@ let performInitialHandshake (mitmAsServerState: state, mitmAsServerConfig: confi
         | None -> failwith "Triple Handshake demo only implemented for RSA key exchange"
         | Some(rsa_kex_cs) ->
     
-    let clientHelloCipherSuites = { clientHello with ciphersuites = Some([rsa_kex_cs]) } in
-    let mitmAsClientState, serverNextCtx, clientHelloCipherSuites = FlexClientHello.send(mitmAsClientState, clientHelloCipherSuites) in
+    let clientHelloCipherSuites =
+        let updated = {
+            clientHello with
+                ciphersuites = Some(FlexConstants.defaultRSACiphersuites);
+                ext = Some([
+                    TLSExtensions.CE_signature_algorithms [
+                        (SA_RSA, SHA256);
+                        (SA_RSA, SHA384);
+                        (SA_RSA, SHA)
+                    ];
+                    TLSExtensions.CE_renegotiation_info empty_bytes;
+                ])
+        } in
+        let cs =
+            match updated.ciphersuites with
+            | Some cs -> cs
+            | None -> []
+        in
+        printfn "🧪 DEBUG: MITM sending ClientHello with ciphersuites: %A" cs;
+        updated
+    in
+    
+    let mitmAsClientState, serverNextCtx, _ =  FlexClientHello.send(mitmAsClientState, fch=clientHelloCipherSuites, cfg=mitmAsClientConfig) in
     
     let mitmAsClientState, serverNextCtx, serverHello = FlexServerHello.receive(mitmAsClientState, clientHelloCipherSuites, serverNextCtx) in
     let mitmAsServerState, clientNextCtx, serverHelloRecord = FlexServerHello.send(mitmAsServerState, clientHello, clientNextCtx, serverHello) in
@@ -144,10 +165,9 @@ let main _ =
             server_port    = serverPort)
     in
     
-    let certDir = "/certs" in
-    let attackerCertChain = Cert.chainFromFile (certDir + "/server.crt") in
-    let attackerPrivKey   = RSA.load (certDir + "/server.key") in
-    let caRootChain       = Cert.chainFromFile (certDir + "/ca.crt") in
+    let attackerCertChain = Cert.chainFromFile "/certs/server.pem" in
+    let attackerPrivKey   = RSA.load "/certs/server.key" in
+    let caRootChain       = Cert.chainFromFile "/certs/ca.crt" in
     
     let serverConfigNoAuth = { mitmAsServerConfig with request_client_certificate = false } in
     

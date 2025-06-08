@@ -29,6 +29,7 @@ type clientExtension =
     | CE_server_name of list<serverName>
     | CE_extended_ms
     | CE_extended_padding
+    | CE_signature_algorithms of sigHashAlg list
 #if tls13
     | CE_negotiated_dh_group of list<dhGroup>
 #endif
@@ -88,6 +89,7 @@ let clientExtensionHeaderBytes ext =
     | CE_server_name (_)       -> abyte2 (0x00uy, 0x00uy)
     | CE_extended_ms           -> abyte2 (0x00uy, 0x17uy)
     | CE_extended_padding      -> abyte2 (0xBBuy, 0x8Fuy)
+    | CE_signature_algorithms (_) -> abyte2 (0x00uy, 0x0Duy)
 #if tls13
     | CE_negotiated_dh_group _ -> abyte2 (0xAAuy, 0xAAuy)
 #endif
@@ -199,6 +201,25 @@ let clientExtensionPayloadBytes ext =
     | CE_server_name(l) -> compile_sni_list l
     | CE_extended_ms -> empty_bytes
     | CE_extended_padding -> empty_bytes
+    | CE_signature_algorithms(sigalgs) ->
+        let entries =
+            List.collect (fun (sa, ha) ->
+                let sa_byte = match sa with
+                    | SA_RSA -> [0x01uy]
+                    | SA_DSA -> [0x02uy]
+                    | SA_ECDSA -> [0x03uy]
+                in
+                let ha_byte = match ha with
+                    | SHA256 -> [0x04uy]
+                    | SHA384 -> [0x05uy]
+                    | SHA    -> [0x02uy]
+                    | _ -> failwith "Unsupported hash algorithm for signature_algorithms extension"
+                in
+                ha_byte @ sa_byte
+            ) sigalgs
+        in
+        let length = Bytes.ushort16_to_bytes (List.length entries) in
+        Bytes.sequence [length; bytes_of_list entries]
 #if tls13
     | CE_negotiated_dh_group gl ->
         let gb = dhGroupsBytes gl in
@@ -346,6 +367,24 @@ let prepareClientExtensions (cfg:config) (conn:ConnectionInfo) renegoCVD =
             CE_ec_point_format([ECGroup.ECP_UNCOMPRESSED]) :: CE_ec_curves(curves) :: res
         else res
     in
+
+     let has_sigalg =
+        List.exists (function
+            | CE_signature_algorithms _ -> true
+            | _ -> false) res
+    in 
+
+    let res =
+        if not has_sigalg then
+            let sigalgs : sigHashAlg list = [
+                (SA_RSA, SHA256);
+                (SA_RSA, SHA384);
+                (SA_RSA, SHA)
+            ] in
+            CE_signature_algorithms sigalgs :: res
+        else res
+    in
+    let () = printfn "🧪 DEBUG: Final client extensions: %A" res in
     res
 
 let serverToNegotiatedExtension cExtL (resuming:bool) cs res sExt : Result<negotiatedExtensions>=

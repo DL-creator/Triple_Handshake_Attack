@@ -13,7 +13,7 @@ services:
     ports:
       - "8443:8443"
     volumes:
-      - ./certs:/certs:ro       # ← mount your CA + server.key/crt + client.key/crt
+      - ./certs:/certs:ro       
     command: ["dotnet", "mitls.dll"]
 
   server:
@@ -26,14 +26,10 @@ services:
     volumes:
       - ./certs:/certs:ro
     command: >
-      sh -c "apk add --no-cache openssl && \
-              echo 'Listing cert directory:' && ls -l /certs && \
-              echo 'Running openssl s_server...' && \
-              openssl s_server -accept 4433 \
-                              -cert /certs/server.crt \
-                              -key /certs/server.key \
-                              -CAfile /certs/ca.crt \
-                              -Verify 1 -www"
+        sh -c "apk add --no-cache openssl && \
+          echo 'Server LOGS' &&
+          echo 'Running OpenSSL...' &&
+          openssl s_server -accept 4433 -cert /certs/server.crt -key /certs/server.key -CAfile /certs/ca.crt -Verify 1 -www"
 
   client:
     image: alpine
@@ -45,10 +41,6 @@ services:
     volumes:
       - ./certs:/certs:ro
     command: >
-      sh -c "apk add --no-cache openssl && \
-             echo -e '\n=============================\n     CLIENT LOGS\n=============================\n' && \
-             openssl s_client -connect mitm:8443 \
-                              -cert /certs/client.crt \
-                              -key /certs/client.key \
-                              -CAfile /certs/ca.crt \
-                              -reconnect"
+       sh -c "apk add --no-cache openssl &&
+        echo 'CLIENT LOGS' &&
+        openssl s_client -connect mitm:8443 -cert /certs/client.crt -key /certs/client.key -CAfile /certs/ca.crt -reconnect"
