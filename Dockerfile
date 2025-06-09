@@ -8,6 +8,7 @@ RUN dotnet publish mitls.fsproj -c Release -o /out
 FROM mcr.microsoft.com/dotnet/runtime:6.0
 WORKDIR /app
 COPY --from=build /out ./
+COPY certs ./certs
 
 ENV LISTEN_HOST=0.0.0.0 \
     LISTEN_PORT=8443 \

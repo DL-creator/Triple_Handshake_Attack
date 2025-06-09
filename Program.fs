@@ -164,10 +164,17 @@ let main _ =
             server_address = serverHost,
             server_port    = serverPort)
     in
-    
-    let attackerCertChain = Cert.chainFromFile "/certs/server.pem" in
-    let attackerPrivKey   = RSA.load "/certs/server.key" in
-    let caRootChain       = Cert.chainFromFile "/certs/ca.crt" in
+
+    let attackerPrivKey = RSA.load "/certs/attacker.key" in
+    let attackerCertChain = 
+        let chain = Cert.chainFromFile "/certs/attacker.pem" in
+        let len = List.length chain in
+        printfn "🧪 Loaded MITM cert chain length: %d" len;
+        chain
+    in
+    // MITM acting as client (towards server)
+    let clientPrivKey = RSA.load "/certs/client.key" in
+    let clientCertChain = Cert.chainFromFile "/certs/client.pem" in
     
     let serverConfigNoAuth = { mitmAsServerConfig with request_client_certificate = false } in
     
@@ -187,4 +194,3 @@ let main _ =
                          (state2_client, clientConfigTrustOnly) in
     
     0
-    

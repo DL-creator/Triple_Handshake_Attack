@@ -53,7 +53,8 @@ let defaultKey osk certl =
         in
         match Cert.for_key_encryption FlexConstants.sigAlgs_RSA hint with
         | None -> failwith (perror __SOURCE_FILE__ __LINE__ "Please provide a certificate for which the private key is available")
-        | Some(c,sk) -> sk
+        | Some(_, sk) -> sk
+
 
 /// <summary>
 /// Computes the session hash and installs it in the given session info
