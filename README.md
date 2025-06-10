@@ -10,7 +10,7 @@ This project demonstrates the [Triple Handshake Attack](https://www.mitls.org/pa
 
 ---
 
-## Option 1: Semi-Automated (Handshake 1 & 2 Only)
+## Semi-Automated (Handshake 1 & 2 Only)
 
 This mode launches MITM, server, and client via Docker Compose. It demonstrates:
 
@@ -28,7 +28,7 @@ docker-compose build --no-cache
 docker-compose up
 ```
 
-### What To Expect
+### Output
 
 - Logs in `mitm`, `server`, and `client` show the attack progress in the same terminal.
 - MITM injects `HelloRequest` for handshake 3, but OpenSSL client does not complete renegotiation.
@@ -36,7 +36,7 @@ docker-compose up
 
 ---
 
-## Option 2: Fully Manual (All 3 Handshakes)
+## Fully Manual (All 3 Handshakes)
 
 Use this to demonstrate **all three handshakes**, including certificate reuse in handshake 3.
 
@@ -60,8 +60,9 @@ Use this to demonstrate **all three handshakes**, including certificate reuse in
 
     ```bash
     openssl s_client -connect localhost:8443 \
-      -cert certs/client.crt -key certs/client.key \
-      -CAfile certs/ca.crt -reconnect
+    -cert certs/client.crt -key certs/client.key \
+    -CAfile certs/ca.crt -reconnect -tls1_2
+
     ```
 When the MITM sends the HelloRequest to trigger renegotiation:
 
